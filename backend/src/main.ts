@@ -5,12 +5,12 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Leaves room for a future frontend (a different origin) to call this API.
-  // No frontend exists yet this week — see README.md section "Non-goals".
+  // Lets the React frontend (a different origin, see ../../frontend) call this API.
   app.enableCors();
 
-  await app.listen(3000);
-  console.log('Operations Hub backend is running on http://localhost:3000');
+  const port = process.env.PORT ? Number(process.env.PORT) : 3001;
+  await app.listen(port);
+  console.log(`Operations Hub backend is running on http://localhost:${port}`);
 }
 
 bootstrap();

@@ -9,6 +9,12 @@
  * Read literally, that also means a request cannot skip "In Progress" — the
  * only documented path to Resolved or Rejected runs through it.
  *
+ * Week 3 adds one more edge: SUBMITTED -> CANCELLED. This is the employee's
+ * own "never mind" action, distinct from an ops team REJECTED decision, and
+ * (per docs/full-stack-delivery.md) it is only reachable while the
+ * request hasn't been picked up yet — once it's IN_PROGRESS the employee can
+ * no longer cancel it unilaterally.
+ *
  * This file is the one place that rule is enforced. Every status change in
  * the API goes through canTransition() below, so the invariant can't be
  * bypassed by some future endpoint that forgets to check it.
@@ -18,22 +24,31 @@ export type RequestStatus =
   | 'SUBMITTED'
   | 'IN_PROGRESS'
   | 'RESOLVED'
-  | 'REJECTED';
+  | 'REJECTED'
+  | 'CANCELLED';
 
 export const REQUEST_STATUSES: RequestStatus[] = [
   'SUBMITTED',
   'IN_PROGRESS',
   'RESOLVED',
   'REJECTED',
+  'CANCELLED',
 ];
 
 /** Every status a request in a given status is allowed to move to next. */
 const ALLOWED_NEXT_STATUSES: Record<RequestStatus, RequestStatus[]> = {
-  SUBMITTED: ['IN_PROGRESS'],
+  SUBMITTED: ['IN_PROGRESS', 'CANCELLED'],
   IN_PROGRESS: ['RESOLVED', 'REJECTED'],
   RESOLVED: [], // terminal: a resolved request does not move again
   REJECTED: [], // terminal: a rejected request does not move again
+  CANCELLED: [], // terminal: a cancelled request does not move again
 };
+
+/** The one business rule behind the cancel flow: only a request that hasn't
+ * been picked up yet (still SUBMITTED) can be self-cancelled by its owner. */
+export function canCancel(status: RequestStatus): boolean {
+  return status === 'SUBMITTED';
+}
 
 export function canTransition(from: RequestStatus, to: RequestStatus): boolean {
   return ALLOWED_NEXT_STATUSES[from].includes(to);

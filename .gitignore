@@ -4,3 +4,10 @@ build/
 .DS_Store
 *.log
 .env
+backend/data/
+*.sqlite
+*.sqlite-journal
+test-results/
+playwright-report/
+.playwright-mcp/
+e2e/.tmp/
