@@ -1,0 +1,12 @@
+{
+  "name": "internal-operations-service-hub-e2e",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Repo-root package for the E2E test suite that drives the full stack (frontend + backend + database) together. See docs/week3-full-stack-delivery.md.",
+  "scripts": {
+    "test:e2e": "npm --prefix backend run build && playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.1"
+  }
+}
