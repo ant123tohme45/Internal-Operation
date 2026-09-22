@@ -140,3 +140,42 @@ test('searching and filtering "My requests" narrows the list', async ({ page }) 
   await page.getByLabel('Search my requests').fill('nothing matches this');
   await expect(page.getByText('No requests match your search.')).toBeVisible();
 });
+
+/**
+ * Week 4: the AI-assisted Request Intake capability, driven from the real
+ * browser against the real backend (docs/week4-production-ai.md). Proves
+ * the advisory contract end to end: a suggestion is offered but nothing is
+ * submitted until the employee reviews it and clicks "Submit request"
+ * themselves, exactly like a manual pick.
+ */
+test('the AI intake assistant suggests a service from free text, and applying it fills the picker', async ({ page }) => {
+  await page.goto('/');
+  await page.getByLabel('Acting as').selectOption({ label: 'Rana Fares (EMP-1) — Marketing' });
+
+  await page.getByLabel('Describe what you need (optional)').fill('my laptop screen is cracked and it will not turn on');
+  await page.getByRole('button', { name: 'Suggest a service' }).click();
+
+  const suggestion = page.locator('.intake-suggestion');
+  await expect(suggestion).toBeVisible();
+  await expect(suggestion).toContainText('Suggested:');
+  await expect(suggestion).toContainText('Laptop replacement');
+
+  await suggestion.getByRole('button', { name: 'Use this suggestion' }).click();
+  await expect(page.getByLabel('Service')).toHaveValue('SVC-1');
+  await expect(page.getByText('Applied to the form below.')).toBeVisible();
+
+  // The employee still has to review and submit it themselves — nothing
+  // was created by the suggestion alone.
+  await page.getByRole('button', { name: 'Submit request' }).click();
+  await expect(page.getByTestId('request-row').filter({ hasText: 'Laptop replacement' }).first()).toBeVisible();
+});
+
+test('the AI intake assistant gives no suggestion for vague free text, and the picker still works manually', async ({ page }) => {
+  await page.goto('/');
+
+  await page.getByLabel('Describe what you need (optional)').fill('I have an issue, please help');
+  await page.getByRole('button', { name: 'Suggest a service' }).click();
+
+  await expect(page.getByText('No confident suggestion for that — pick a service below instead.')).toBeVisible();
+  await expect(page.getByText(/Suggested:/)).toHaveCount(0);
+});

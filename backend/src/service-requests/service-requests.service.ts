@@ -81,6 +81,31 @@ export class ServiceRequestsService {
     return this.services.find();
   }
 
+  /** Browse/search over the service catalog (product-spec.md section 3:
+   * "Service browsing and search by genre, the search engine returns
+   * filtered results"; architecture.md designed this flow but Weeks 2-3
+   * never implemented a backend endpoint for it — corrected in Week 4, see
+   * docs/week4-production-ai.md). `q` matches against name, category, and
+   * keywords (case-insensitive substring); `category` narrows to an exact
+   * category. Both are optional and combine with AND. The catalog is small
+   * enough that filtering in application code (rather than a SQL LIKE
+   * query) is the simplest correct option — the same judgement call
+   * already made for "my requests" filtering (backend/README.md section 2). */
+  async searchServices(q?: string, category?: string): Promise<Service[]> {
+    const all = await this.services.find();
+    const needle = q?.trim().toLowerCase();
+
+    return all.filter((service) => {
+      if (category && service.category !== category) return false;
+      if (!needle) return true;
+
+      const haystack = [service.name, service.category ?? '', ...(service.keywords ?? [])]
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(needle);
+    });
+  }
+
   /** Registers a new employee so they can appear in the identity switcher
    * and submit requests. Validates the three required fields and that the
    * id isn't already taken before creating the row — the "verification"

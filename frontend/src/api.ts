@@ -25,7 +25,16 @@ export interface Service {
   id: string;
   name: string;
   departmentOwner: string;
+  category?: string | null;
+  keywords?: string[] | null;
 }
+
+/** The Week 4 AI-assisted Request Intake result (docs/week4-production-ai.md).
+ * Advisory only — matching this shape exactly is what lets the UI treat
+ * "no suggestion" as a normal, expected outcome rather than an error. */
+export type IntakeSuggestion =
+  | { matched: true; serviceId: string; confidence: number; rationale: string }
+  | { matched: false; reason: string; detail?: string };
 
 export interface ServiceRequest {
   id: string;
@@ -122,5 +131,20 @@ export const api = {
     request<ServiceRequest>(`/api/service-requests/${id}/cancel`, {
       method: 'PATCH',
       employeeId,
+    }),
+
+  /** Browse/search the service catalog (product-spec.md's browse/search
+   * requirement — a Week 2-3 gap closed in Week 4, see
+   * docs/week4-production-ai.md). */
+  searchServices: (q: string) =>
+    request<Service[]>(`/api/service-requests/reference/services/search?q=${encodeURIComponent(q)}`),
+
+  /** The Week 4 AI-assisted Request Intake capability: free text in,
+   * at most one advisory candidate service out. Never creates or changes
+   * anything — the employee still submits the request themselves. */
+  suggestIntake: (text: string) =>
+    request<IntakeSuggestion>('/api/service-requests/intake/suggest', {
+      method: 'POST',
+      body: { text },
     }),
 };

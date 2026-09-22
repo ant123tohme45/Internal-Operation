@@ -3,6 +3,7 @@ import {
   api,
   ApiError,
   type Employee,
+  type IntakeSuggestion,
   type RequestStatus,
   type RequestStatusEvent,
   type Service,
@@ -415,6 +416,103 @@ function RequestDetailModal({
   );
 }
 
+/**
+ * The Week 4 AI-assisted Request Intake capability, from the employee's
+ * side (docs/week4-production-ai.md has the full design). An employee
+ * describes what they need in their own words; the backend returns at
+ * most one advisory candidate service, never anything else — nothing is
+ * submitted or changed here. "Use this suggestion" only pre-fills the
+ * existing service picker below; the employee still reviews it and clicks
+ * "Submit request" themselves, exactly as if they'd picked it by hand.
+ * That's the "AI is advisory, software/human authority stays final" rule
+ * made visible in the UI, not just enforced on the backend.
+ */
+function IntakeAssistant({
+  services,
+  onUseSuggestion,
+}: {
+  services: Service[];
+  onUseSuggestion: (serviceId: string) => void;
+}) {
+  const [text, setText] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<IntakeSuggestion | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [usedServiceId, setUsedServiceId] = useState<string | null>(null);
+
+  const handleAsk = async () => {
+    if (!text.trim()) return;
+    setLoading(true);
+    setError(null);
+    setResult(null);
+    setUsedServiceId(null);
+    try {
+      setResult(await api.suggestIntake(text.trim()));
+    } catch (err) {
+      setError(apiErrorText(err, 'Could not get a suggestion right now.'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const suggestedService = result?.matched ? services.find((s) => s.id === result.serviceId) : undefined;
+
+  return (
+    <div className="intake-assistant">
+      <label htmlFor="intake-text">Describe what you need (optional)</label>
+      <textarea
+        id="intake-text"
+        rows={2}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="e.g. “my laptop screen is cracked” — we'll suggest a matching service"
+      />
+      <button
+        type="button"
+        className="button-ghost intake-ask-button"
+        onClick={handleAsk}
+        disabled={loading || !text.trim()}
+      >
+        {loading ? 'Thinking…' : 'Suggest a service'}
+      </button>
+
+      {error && (
+        <p className="notice notice-error" role="alert">
+          {error}
+        </p>
+      )}
+
+      {result?.matched && (
+        <div className="intake-suggestion" role="status">
+          <div className="intake-suggestion-text">
+            Suggested: <strong>{suggestedService?.name ?? result.serviceId}</strong>
+            {suggestedService && <> ({suggestedService.departmentOwner})</>}
+            <span className="intake-confidence"> — {Math.round(result.confidence * 100)}% match</span>
+          </div>
+          {usedServiceId === result.serviceId ? (
+            <span className="hint">Applied to the form below.</span>
+          ) : (
+            <button
+              type="button"
+              className="link-button"
+              onClick={() => {
+                onUseSuggestion(result.serviceId);
+                setUsedServiceId(result.serviceId);
+              }}
+            >
+              Use this suggestion
+            </button>
+          )}
+        </div>
+      )}
+
+      {result && !result.matched && (
+        <p className="hint">No confident suggestion for that — pick a service below instead.</p>
+      )}
+    </div>
+  );
+}
+
 export default function App() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [services, setServices] = useState<Service[]>([]);
@@ -563,6 +661,7 @@ export default function App() {
         <div className="columns">
           <section className="card form-card" aria-labelledby="submit-heading">
             <h2 id="submit-heading">New request</h2>
+            <IntakeAssistant services={services} onUseSuggestion={setServiceId} />
             <form onSubmit={handleSubmit}>
               <div className="label-row">
                 <label htmlFor="service">Service</label>

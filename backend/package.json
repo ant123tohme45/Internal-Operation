@@ -8,7 +8,8 @@
     "build": "nest build",
     "start": "node dist/main.js",
     "test": "jest",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "eval:ai": "npm run build && node dist/ai/eval/run-eval.js"
   },
   "jest": {
     "rootDir": "src",

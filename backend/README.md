@@ -30,6 +30,12 @@ authorization check (only the owner) on top of the existing business-rule
 check (only while cancellable). See `../docs/full-stack-delivery.md`
 sections 4–6 for the full reasoning.
 
+Week 4 adds an AI-assisted Request Intake capability (`src/ai/`) and closes
+a Weeks 1-3 gap: browse/search over the service catalog was designed
+(`../docs/architecture.md`) and specified (`../docs/product-spec.md`
+section 3) but never implemented — it is now. See
+`../docs/week4-production-ai.md` for the full writeup.
+
 Where each rule lives in code:
 
 | Rule | Source | Enforced in |
@@ -43,11 +49,16 @@ Where each rule lives in code:
 
 ## 2. Non-goals
 
-- **No real login/session system.** The `X-Employee-Id` header stands in for "who's signed in" (see `../docs/full-stack-delivery.md` section 4). A real login would replace the header with a session/JWT; the authorization checks themselves wouldn't need to change.
+- **No real login/session system.** The `X-Employee-Id` header stands in for "who's signed in" (see `../docs/full-stack-delivery.md` section 4). A real login would replace the header with a session/JWT; the authorization checks themselves wouldn't need to change. Still intentionally unimplemented as of Week 4 — see `../docs/week4-production-ai.md` section 8.
 - **No CI/CD, deployment, or monitoring.**
-- **No edit/delete for employees or services** — only registering new ones (section 6). No search/filter endpoints either — filtering "my requests" happens client-side in the frontend, since a single employee's request list is small.
+- **No edit/delete for employees or services** — only registering new ones (section 6).
+- **No auto-submission from the AI intake capability** — it only suggests; a human always clicks "Submit request" (`../docs/week4-production-ai.md` section 4).
 
-(Real database persistence, a frontend, and an automated test suite — all Week 2 non-goals — are now delivered; see section 4 and `../docs/full-stack-delivery.md`.)
+(Real database persistence, a frontend, and an automated test suite — all
+Week 2 non-goals — are now delivered; see section 4 and
+`../docs/full-stack-delivery.md`. Search/filter over the service catalog —
+a Week 2/3 non-goal — is now delivered too, see section 6 below and
+`../docs/week4-production-ai.md` section 8.)
 
 ## 3. Prerequisites
 
@@ -79,6 +90,11 @@ is still there — that's the real-persistence guarantee this backend now has.
 Override the port with `PORT=<port> npm start`, and the database file with
 `DB_PATH=<path> npm start` (used by the test suite to point at a throwaway
 database instead — see `../docs/full-stack-delivery.md` section 2).
+
+The Week 4 AI intake capability needs no configuration by default (a free,
+deterministic provider). To use a real model instead, set `AI_PROVIDER=openai`
+and `AI_API_KEY=<key>` (optionally `AI_MODEL`, `AI_BASE_URL`) before `npm start`
+— see `../docs/week4-production-ai.md` section 5.
 
 Stop it with `Ctrl+C`. Re-run `npm run build` after any source change, then
 `npm start` again.
@@ -125,6 +141,8 @@ body instead.
 |---|---|---|
 | `GET` | `/api/service-requests/reference/employees` | Known employees (for a frontend identity picker) |
 | `GET` | `/api/service-requests/reference/services` | Known services (for a frontend service picker) |
+| `GET` | `/api/service-requests/reference/services/search?q=&category=` | Browse/search the catalog (Week 4 — see `../docs/week4-production-ai.md` section 8) |
+| `POST` | `/api/service-requests/intake/suggest` | Week 4 AI-assisted Request Intake: `{ text }` in, an advisory candidate service (or none) out — no header, nothing is created (`../docs/week4-production-ai.md`) |
 | `POST` | `/api/service-requests/reference/employees` | Register a new employee (`{ id, fullName, department }`, no header) — 400 if `id` is already taken or a field is missing |
 | `POST` | `/api/service-requests/reference/services` | Register a new service (`{ id, name, departmentOwner }`, no header) — same validation as employees |
 | `POST` | `/api/service-requests` | Submit a new request (starts at `SUBMITTED`), owned by `X-Employee-Id` |
@@ -300,8 +318,9 @@ HTTP 404
 ## 8. Automated tests (replace the manual walkthrough above)
 
 ```bash
-npm test         # unit: the business rule behind cancel eligibility (status-transitions.spec.ts)
-npm run test:e2e # integration (real SQLite) + the section 7 walkthrough as a regression suite
+npm test         # unit: business rules — cancel eligibility (status-transitions.spec.ts) and AI intake orchestration (src/ai/intake-ai.core.spec.ts)
+npm run test:e2e # integration (real SQLite) + the section 7 walkthrough as a regression suite + Week 4 HTTP tests
+npm run eval:ai  # the Week 4 AI eval suite — 5-8 representative cases, no API key needed
 ```
 
-See `../docs/full-stack-delivery.md` section 7 for what each suite covers, and the repository root `README.md` for the E2E (browser) test.
+See `../docs/full-stack-delivery.md` section 7 and `../docs/week4-production-ai.md` section 7 for what each suite covers, and the repository root `README.md` for the E2E (browser) test.

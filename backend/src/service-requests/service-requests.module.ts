@@ -8,6 +8,8 @@ import { Service } from './entities/service.entity';
 import { ServiceRequestEntity } from './entities/service-request.entity';
 import { RequestStatusEventEntity } from './entities/request-status-event.entity';
 import { EMPLOYEE_SEED, SERVICE_SEED } from './seed-data';
+import { IntakeAiService } from '../ai/intake-ai.service';
+import { INTAKE_AI_PROVIDER, createIntakeAiProvider } from '../ai/intake-ai-provider.factory';
 
 @Module({
   imports: [
@@ -19,7 +21,11 @@ import { EMPLOYEE_SEED, SERVICE_SEED } from './seed-data';
     ]),
   ],
   controllers: [ServiceRequestsController],
-  providers: [ServiceRequestsService],
+  providers: [
+    ServiceRequestsService,
+    IntakeAiService,
+    { provide: INTAKE_AI_PROVIDER, useFactory: () => createIntakeAiProvider() },
+  ],
   exports: [TypeOrmModule],
 })
 export class ServiceRequestsModule implements OnModuleInit {

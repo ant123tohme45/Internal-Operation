@@ -14,7 +14,25 @@ export const EMPLOYEE_SEED: Employee[] = [
 ];
 
 export const SERVICE_SEED: Service[] = [
-  { id: 'SVC-1', name: 'Laptop replacement', departmentOwner: 'IT' },
-  { id: 'SVC-2', name: 'Payroll correction', departmentOwner: 'Finance' },
-  { id: 'SVC-3', name: 'Access badge reset', departmentOwner: 'HR' },
+  {
+    id: 'SVC-1',
+    name: 'Laptop replacement',
+    departmentOwner: 'IT',
+    category: 'Hardware',
+    keywords: ['laptop', 'computer', 'screen', 'monitor', 'battery', 'charger', 'device', 'hardware', 'broken', 'crack', 'cracked'],
+  },
+  {
+    id: 'SVC-2',
+    name: 'Payroll correction',
+    departmentOwner: 'Finance',
+    category: 'Payroll',
+    keywords: ['payroll', 'paycheck', 'salary', 'pay', 'wage', 'payslip', 'compensation', 'overtime'],
+  },
+  {
+    id: 'SVC-3',
+    name: 'Access badge reset',
+    departmentOwner: 'HR',
+    category: 'Security',
+    keywords: ['badge', 'access', 'door', 'entry', 'card', 'lock', 'keycard', 'security'],
+  },
 ];

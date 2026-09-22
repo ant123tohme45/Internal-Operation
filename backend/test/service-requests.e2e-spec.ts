@@ -230,10 +230,27 @@ describe('ServiceRequests HTTP API (e2e)', () => {
         .send({ id: 'SVC-100', name: 'Standing desk request', departmentOwner: 'Facilities' })
         .expect(201);
 
-      expect(res.body).toEqual({ id: 'SVC-100', name: 'Standing desk request', departmentOwner: 'Facilities' });
+      // category/keywords are Week 4 additions (see service.entity.ts) —
+      // nullable, so a service created without them still round-trips as
+      // null rather than being omitted; registerService itself is
+      // unchanged Week 2/3 behaviour, which is what this regression test
+      // protects.
+      expect(res.body).toEqual({
+        id: 'SVC-100',
+        name: 'Standing desk request',
+        departmentOwner: 'Facilities',
+        category: null,
+        keywords: null,
+      });
 
       const list = await request(server).get('/api/service-requests/reference/services').expect(200);
-      expect(list.body).toContainEqual({ id: 'SVC-100', name: 'Standing desk request', departmentOwner: 'Facilities' });
+      expect(list.body).toContainEqual({
+        id: 'SVC-100',
+        name: 'Standing desk request',
+        departmentOwner: 'Facilities',
+        category: null,
+        keywords: null,
+      });
     });
 
     it('rejects a duplicate id', async () => {
