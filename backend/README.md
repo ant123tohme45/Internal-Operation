@@ -93,7 +93,8 @@ database instead — see `../docs/full-stack-delivery.md` section 2).
 
 The Week 4 AI intake capability needs no configuration by default (a free,
 deterministic provider). To use a real model instead, set `AI_PROVIDER=openai`
-and `AI_API_KEY=<key>` (optionally `AI_MODEL`, `AI_BASE_URL`) before `npm start`
+or `AI_PROVIDER=anthropic`, and `AI_API_KEY=<key>` (optionally `AI_MODEL`,
+`AI_BASE_URL`) before `npm start`
 — see `../docs/week4-production-ai.md` section 5.
 
 Stop it with `Ctrl+C`. Re-run `npm run build` after any source change, then

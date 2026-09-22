@@ -67,7 +67,12 @@ This isn't a comment — it's enforced in two independent places, so it survives
 
 The default and only provider exercised by the automated tests and the eval suite is `HeuristicIntakeAiProvider` (`backend/src/ai/heuristic-intake-ai.provider.ts`): deterministic bag-of-words keyword overlap between the free text and each service's name/category/department/keywords, scored by what fraction of the *input's* meaningful words overlap. No network call, no API key, no cost, and — importantly for eval reproducibility — the same input always produces the same output.
 
-An optional `HttpIntakeAiProvider` (`backend/src/ai/http-intake-ai.provider.ts`) calls a real, OpenAI-compatible chat-completions endpoint, asking for the same strict JSON shape. It is selected only via `AI_PROVIDER=openai` + `AI_API_KEY` (see `intake-ai-provider.factory.ts`); with the key missing, the app logs a warning and falls back to the heuristic provider rather than failing to boot. It exists to prove the capability is not hard-coded around the heuristic — relevant for Week 5 ("put it live") — but grading this week needs none of it.
+Two optional providers call a real model instead, both asking for the same strict JSON shape and both selected only via `AI_PROVIDER` + `AI_API_KEY` (see `intake-ai-provider.factory.ts`); with the key missing, the app logs a warning and falls back to the heuristic provider rather than failing to boot:
+
+- `HttpIntakeAiProvider` (`backend/src/ai/http-intake-ai.provider.ts`) — any OpenAI-compatible chat-completions endpoint. `AI_PROVIDER=openai`.
+- `AnthropicIntakeAiProvider` (`backend/src/ai/anthropic-intake-ai.provider.ts`) — the Anthropic Messages API. `AI_PROVIDER=anthropic`. Needs an Anthropic Console API key (console.anthropic.com), a different product from a claude.ai chat subscription.
+
+They exist to prove the capability is not hard-coded around one vendor, or around the heuristic — relevant for Week 5 ("put it live") — but grading this week needs neither.
 
 ## 6. Failure modes are handled on purpose, not accidentally
 

@@ -83,7 +83,7 @@ Open the URL Vite prints (typically `http://localhost:5173`).
 
 > Both default ports (`3001` for the backend, `5173` for the frontend) can be overridden — backend via `PORT=<port> npm start`, frontend via `npm run dev -- --port <port>` plus `VITE_API_URL=http://localhost:<backend-port>` (see `frontend/.env.example`) if you also moved the backend.
 
-> The AI intake capability (below) needs no extra setup or API key — it runs on a free, deterministic provider by default. Optionally, set `AI_PROVIDER=openai`, `AI_API_KEY=<key>` (and, if needed, `AI_MODEL`/`AI_BASE_URL`) before `npm start` to use a real model instead — see `docs/week4-production-ai.md` section 5.
+> The AI intake capability (below) needs no extra setup or API key — it runs on a free, deterministic provider by default. Optionally, set `AI_PROVIDER=openai` or `AI_PROVIDER=anthropic`, plus `AI_API_KEY=<key>` (and, if needed, `AI_MODEL`/`AI_BASE_URL`) before `npm start` to use a real model instead — see `docs/week4-production-ai.md` section 5.
 
 ## 4. Exercise the flow
 
